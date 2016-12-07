@@ -28,7 +28,7 @@ elseif vektor == [0;0;0;0;0;0;0;0;1]
     
     
 else
-    broj=NaN;
+    broj=69;
 
 end
 

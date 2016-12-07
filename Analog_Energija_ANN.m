@@ -30,9 +30,9 @@ close all
 
 close all;
 % Definisem koji indeks signala treba da ucitam
-train_set=[ 1,3,4,6,7,8,10,11];
+train_set=[ 1,3,5,6,7]; %,8,9,10,11
 % Ne koristim poziciju 5 pa za test koristim signal koji sam izbacio
-test_set= [2,5,9]; %Ovde koristim samo 5 3,7,9
+test_set= [11,10]; %Ovde koristim samo 5 3,7,9
 
 % OBUKA =============================================================
 obuka_ulaz=[Energija_1(1:4,train_set),Energija_2(1:4,train_set)...
@@ -83,9 +83,7 @@ end
 clear obuka_maksimum; clear test_maksimum
 
 %% Kreiranje izlaza
-
-% LOSE SAMO KODIDAO VEKTORE :(
-% https://www.mathworks.com/help/nnet/ref/vec2ind.html
+% vec2ind
 
 obuka_binarni_izlaz=[];
 for i=1:length(obuka_izlaz)
@@ -103,40 +101,27 @@ clear tmp;
 
 %% Treniranje ANN
 
-net = patternnet([10,10]); % [80,40] [150,150] []
+net = patternnet([10]); % [80,40] [150,150] []
+net.performParam.regularization = 0.1;
 %net.trainParam.max_fail = 15;
-%net.trainParam.min_grad=1e-6;
-net.performParam.regularization = 0.0001;
+%net.trainParam.min_grad=1e-3;
 %plotconfusion(targets,outputs)
 plotconfusion();
 net = train(net,obuka_ulaz,obuka_binarni_izlaz);
-
-y = net(obuka_ulaz);
-%classes = vec2ind(y);raspakuj_izlaz
-
-% OVDE PUCA SREDITI SRANJE JER PRIMA VEKTOR NA MATRICU...
-y_round=round(y);
-classes = raspakuj_izlaz(y_round);
-
-UPOREDI=[obuka_izlaz;classes];
 %perf = perform(net,obuka_binarni_izlaz,y);
 %view(net)
 
-% Provera OBUKE seta
-% Propustam test set koji sam definisao na pocetku. Ove odbirke mreza nije
-% koristila za obucavanje
-
+% OBUKA propustam ceo set radi provere
 clc
-simuliran_obuka_izlaz=[];
-for(i=1:length(obuka_ulaz))
-    simuliran_obuka_izlaz(:,i)=sim(net,obuka_ulaz(:,i));
+y = net(obuka_ulaz);
+y_round=round(y);
+classes=[];
+for i=1:length(y_round)
+    classes(:,i)=raspakuj_izlaz(y_round(:,i));
 end
 
-simuliran_test_obuka_vector = raspakuj_izlaz(simuliran_obuka_izlaz);
+OBUKA=[obuka_izlaz;classes];
 
-OBUKA=[obuka_izlaz;simuliran_test_obuka_vector];
-
-%
 pogodjeno=0;
 for i=1:length(OBUKA)
     tmp=OBUKA(:,i);
@@ -148,6 +133,36 @@ end
 
 fprintf('OBUKA Pogodjeno %d od %d a to je %f procenata\n',...
        pogodjeno,length(OBUKA),pogodjeno/length(OBUKA)*100)
+
+clear classes; clear y; clear y_round; clear pogodjeno; clear tmp
+%
+% TEST propustam ceo set radi provere
+
+y = net(test_ulaz);
+y_round=round(y);
+classes=[];
+for i=1:length(y_round)
+    classes(:,i)=raspakuj_izlaz(y_round(:,i));
+end
+
+TEST=[test_izlaz;classes];
+
+pogodjeno=0;
+for i=1:length(TEST)
+    tmp=TEST(:,i);
+    if tmp(1)==tmp(2)
+        pogodjeno=pogodjeno+1;
+    end   
+end
+
+
+fprintf('TEST  Pogodjeno %d od %d a to je %f procenata\n',...
+       pogodjeno,length(TEST),pogodjeno/length(TEST)*100)
+
+clear classes; clear y; clear y_round; clear pogodjeno; clear tmp
+
+
+
 
 % % Ulazni_Signal=obuka_ulaz;
 % % Simuliran_Izlaz=[];
