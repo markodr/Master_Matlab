@@ -30,9 +30,12 @@ close all
 
 close all;
 % Definisem koji indeks signala treba da ucitam
-train_set=[ 1,3,5,6,7]; %,8,9,10,11
+train_set=[ 1,7,3,2,8,10]; %,8,9,10,11
 % Ne koristim poziciju 5 pa za test koristim signal koji sam izbacio
-test_set= [11,10]; %Ovde koristim samo 5 3,7,9
+test_set = [6,9,4];   % 2 9
+test_set_1 = [5,11]; % 3,9
+
+
 
 % OBUKA =============================================================
 obuka_ulaz=[Energija_1(1:4,train_set),Energija_2(1:4,train_set)...
@@ -57,7 +60,20 @@ test_izlaz=[Energija_1(5,test_set),Energija_2(5,test_set)...
            ,Energija_5(5,test_set),Energija_6(5,test_set)...
            ,Energija_7(5,test_set),Energija_8(5,test_set)...
            ,Energija_9(5,test_set)];  
-        
+       
+% DODATNI TEST da ubrzam trazenje odgovarajuce ANN
+
+test_ulaz_1=[Energija_1(1:4,test_set_1),Energija_2(1:4,test_set_1)...
+          ,Energija_3(1:4,test_set_1),Energija_4(1:4,test_set_1)...
+          ,Energija_5(1:4,test_set_1),Energija_6(1:4,test_set_1)...
+          ,Energija_7(1:4,test_set_1),Energija_8(1:4,test_set_1)...
+          ,Energija_9(1:4,test_set_1)];  
+test_izlaz_1=[Energija_1(5,test_set_1),Energija_2(5,test_set_1)...
+           ,Energija_3(5,test_set_1),Energija_4(5,test_set_1)...
+           ,Energija_5(5,test_set_1),Energija_6(5,test_set_1)...
+           ,Energija_7(5,test_set_1),Energija_8(5,test_set_1)...
+           ,Energija_9(5,test_set_1)]; 
+
        
 % Ne koristim raw signale, zato ih brisem. Ucitani su samo zbog
 % vizuelizacije
@@ -65,7 +81,7 @@ test_izlaz=[Energija_1(5,test_set),Energija_2(5,test_set)...
 clear Signal_1; clear Signal_2; clear Signal_3;
 clear Signal_4; clear Signal_5; clear Signal_6;
 clear Signal_7; clear Signal_8; clear Signal_9;
-clear train_set; clear test_set;
+clear train_set; clear test_set; clear test_set_1;
 
 % Normalizacija seta
 
@@ -100,9 +116,9 @@ end
 clear tmp;
 
 %% Treniranje ANN
-
-net = patternnet([10]); % [80,40] [150,150] []
-net.performParam.regularization = 0.1;
+ 
+net = patternnet([70]); % [80,40] [150,150] []
+net.performParam.rgularization = 0.001;
 %net.trainParam.max_fail = 15;
 %net.trainParam.min_grad=1e-3;
 %plotconfusion(targets,outputs)
@@ -110,6 +126,7 @@ plotconfusion();
 net = train(net,obuka_ulaz,obuka_binarni_izlaz);
 %perf = perform(net,obuka_binarni_izlaz,y);
 %view(net)
+
 
 % OBUKA propustam ceo set radi provere
 clc
@@ -161,6 +178,32 @@ fprintf('TEST  Pogodjeno %d od %d a to je %f procenata\n',...
 
 clear classes; clear y; clear y_round; clear pogodjeno; clear tmp
 
+% DRUGI TEST RADI UBRZAVANJA
+
+% TEST propustam ceo set radi provere
+
+y = net(test_ulaz_1);
+y_round=round(y);
+classes=[];
+for i=1:length(y_round)
+    classes(:,i)=raspakuj_izlaz(y_round(:,i));
+end
+
+TEST_1=[test_izlaz_1;classes];
+
+pogodjeno=0;
+for i=1:length(TEST_1)
+    tmp=TEST_1(:,i);
+    if tmp(1)==tmp(2)
+        pogodjeno=pogodjeno+1;
+    end   
+end
+
+
+fprintf('TEST  Pogodjeno %d od %d a to je %f procenata\n',...
+       pogodjeno,length(TEST_1),pogodjeno/length(TEST_1)*100)
+
+clear classes; clear y; clear y_round; clear pogodjeno; clear tmp
 
 
 
