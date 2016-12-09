@@ -28,9 +28,9 @@ close all
 
 close all;
 % Definisem koji indeks signala treba da ucitam
-train_set =  [  3,4,7,8,10];
-test_set =   [1,2,5,6,9,11];
-test_set_1 = [1,2,5,6,9,11];%[1,2,9];
+train_set =  [1,2,6,7,8,9,11];
+test_set =   [3,10];
+test_set_1 = [4,5];
 
 % OBUKA =============================================================
 obuka_ulaz=[Energija_1(1:4,train_set),Energija_2(1:4,train_set)...
@@ -216,7 +216,7 @@ clear pogodjeno; clear tmp
 % =======================================================================
 clc
 prag=80;
-close all;
+close all; clear net;
 clear UPOREDI; clear OBUKA; clear TEST; clear TEST_1
 
 UPOREDI=[];
@@ -227,42 +227,33 @@ clear net;
 % https://www.mathworks.com/help/nnet/ug/choose-a-multilayer-neural-network-training-function.html
 % https://www.mathworks.com/help/nnet/ref/crossentropy.html
 
-% Entropija
-net = patternnet(20);
-net.performParam.regularization = 0.1;
-net.performParam.normalization = 'none';
-
-
-
-
-%view(net)
-net.trainParam.showWindow=0; %default is 1)
-%Obusavam mrezu
-net = train(net,obuka_ulaz,obuka_binarni_izlaz);
-
-
-% % % % Ucitavam OBUCENE MREZE radi provere
-% % % %load('1,2,3,6,8,10_7,5.mat');
-% % % %load('1,7,3,6,8,10_2,9.mat');
-
-% Mreza TIP 2
-% S=[20,20]; %% 'purelin' 'logsig' 'tansig' 'hardlim' tanh
-% TF= {'logsig','logsig'}; % Transfer function of ith layer.
-% BTF= 'trainlm'; % Backprop network training function : 'trainlm'
-% BLF= 'learngdm'; % Backprop weight/bias learning function : 'learngdm'
-% PF=  'mse'; % Performance function
-% DDF= 'dividerand'; % Data division function  
-% 
-% net=newff(obuka_ulaz,obuka_binarni_izlaz,S,TF,BTF,BLF,PF);
-% 
-% net.trainParam.lr = 0.01;
-% net.trainParam.epochs = 100;
-% %net.trainParam.goal = 1e-3;
-% %net.trainParam.show= 1;
-% net.performParam.regularization = 0.0008; 
+% % OBUCAVANJE Entropija
+% net = patternnet([20,20]); 
+% %net.performParam.regularization = 0.1;
+% net.performParam.normalization = 'none';
 % net.trainParam.showWindow=0;
-% [net,tr]=train(net,obuka_ulaz,obuka_binarni_izlaz);
+% net.performFcn = 'crossentropy';
 
+% % % OBUCAVANJE Mse,tansig 
+net = feedforwardnet([20,20]);
+net.layers{3}.transferFcn = 'tansig';
+net.performFcn = 'mse'; %mae %sse %mse
+%net.performParam.regularization = 0.01;
+net.performParam.normalization = 'none';
+% Multilayer Neural Network Training Function
+net.trainFcn = 'trainlm'; 
+        % trainlm , trainbfg, trainrp, trainscg, 
+        % traincgb, traincgf, traincgp, traincgp, 
+        % traingdx
+        % purelin,logsig,tansig,hardlim,tanh
+%view(net)
+
+
+
+% =========== Obusavam mrezu ===========
+net.trainParam.showWindow=0;
+net = train(net,obuka_ulaz,obuka_binarni_izlaz);
+% =========== Obusavam mrezu ===========
 
 
 % OBUKA propustam ceo set radi provere
